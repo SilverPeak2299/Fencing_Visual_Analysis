@@ -1,6 +1,7 @@
 import argparse
 import cv2 as cv
 import numpy as np
+
 import matplotlib.pyplot as plt
 
 from yolo_pose import process_image, load_model
@@ -13,7 +14,7 @@ def main():
     left_hip_path = []
     right_hip_path = []
     left_shoulder_path = []
-    right_elbow_path = []
+    right_wrist_path = []
     
     while video.isOpened():
         yolo_model = load_model()
@@ -32,8 +33,8 @@ def main():
         # Append coordinates (x, y)
         left_hip_path.append(keypoints[11])       # Left hip
         right_hip_path.append(keypoints[12])      # Right hip
-        left_shoulder_path.append(keypoints[5])   # Left shoulder
-        right_elbow_path.append(keypoints[8])     # Right elbow
+        left_shoulder_path.append(keypoints[6])   # Left shoulder
+        right_wrist_path.append(keypoints[10])     # Right wrist
         
         # Plot keypoints on frame
         annotated_frame = results[0].plot()
@@ -45,18 +46,18 @@ def main():
         if cv.waitKey(1) == 27:
             break
     
-    
+
     lh = np.array(left_hip_path)
     rh = np.array(right_hip_path)
     ls = np.array(left_shoulder_path)
-    re = np.array(right_elbow_path)
+    re = np.array(right_wrist_path)
     
     # Plot
     plot_keypoint_trajectories(
         ("Left Hip", lh),
         ("Right Hip", rh),
         ("Left Shoulder", ls),
-        ("Right Elbow", re)
+        ("Right wrist", re)
     )
 
 def plot_keypoint_trajectories(*keypoints):

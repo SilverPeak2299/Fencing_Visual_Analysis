@@ -5,5 +5,5 @@ def process_image(image, model):
     return results
 
 def load_model():
-    model = YOLO("./models/yolo11n-pose.pt")
+    model = YOLO("./models/yolo11x-pose.pt")
     return model
