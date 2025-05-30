@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_velocity(x_velocity, label):
+def plot_velocity(x_velocity, label, fps):
     """
     Plot x-direction velocity over time.
 
@@ -14,7 +14,7 @@ def plot_velocity(x_velocity, label):
         matplotlib.figure.Figure
     """
     import matplotlib.pyplot as plt
-    time = np.arange(len(x_velocity)) / 30  # Time in seconds (assuming 30fps)
+    time = np.arange(len(x_velocity)) / fps
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(time, x_velocity, label=f"{label} X-Velocity")
