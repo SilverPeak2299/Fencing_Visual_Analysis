@@ -2,27 +2,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_velocity(velocity, label):
+def plot_velocity(x_velocity, label):
     """
-    Plot velocity over time.
-    
+    Plot x-direction velocity over time.
+
     Parameters:
-        velocity (np.ndarray): 1D array of velocity magnitudes.
+        x_velocity (np.ndarray): 1D array of x-direction velocities.
         label (str): Label for the velocity curve.
-    
+
     Returns:
         matplotlib.figure.Figure
     """
     import matplotlib.pyplot as plt
+    time = np.arange(len(x_velocity)) / 30  # Time in seconds (assuming 30fps)
+
     fig, ax = plt.subplots(figsize=(10, 4))
-    time = np.arange(len(velocity)) / 30  # Time in seconds (assuming 30fps)
-    ax.plot(time, velocity, label=f"{label} Velocity")
+    ax.plot(time, x_velocity, label=f"{label} X-Velocity")
+    ax.axhline(0, color='gray', linestyle='--', linewidth=1)
     ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Velocity (px/s)")
-    ax.set_title(f"Velocity of {label} Over Time")
+    ax.set_ylabel("X-Velocity (px/s)")
+    ax.set_title(f"X-Directional Velocity of {label} Over Time")
     ax.grid(True)
     ax.legend()
     return fig
+
 
 def plot_keypoint_trajectories(*keypoints):
     """

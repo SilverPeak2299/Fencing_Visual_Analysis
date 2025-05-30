@@ -14,21 +14,20 @@ class VideoAnalysys:
 
     def compute_velocity(self, positions, fps=30):
         """
-        Compute velocity magnitude from position coordinates over time.
-        
+        Compute x-direction velocity from position coordinates over time.
+    
         Parameters:
             positions (np.ndarray): Nx2 array of (x, y) positions.
             fps (int): Frames per second of the video.
     
         Returns:
-            np.ndarray: Array of velocity magnitudes per frame (N-1 values).
+            np.ndarray: 1D array of x velocities (N-1 values).
         """
         positions = np.array(positions)
-        deltas = np.diff(positions, axis=0)  # Compute differences between frames
-        speeds = np.linalg.norm(deltas, axis=1)  # Euclidean distance per frame
-        velocity = speeds * fps  # Convert to units per second
-        return velocity
-        
+        dx = np.diff(positions[:, 0])  # Change in x per frame
+        x_velocity = dx * fps  # Convert to units per second
+        return x_velocity
+            
     def lowpass_filter(self, trajectory, window_length=13, polyorder=2):
         """
         Smooth 2D trajectory data using Savitzky-Golay filter.
