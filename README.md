@@ -3,7 +3,7 @@
 **Fencing Visual Analysis** is an end-to-end data processing and visualization tool designed to extract insights from fencing performance using computer vision. Built as a software engineering project with a focus on data engineering principles, the app demonstrates how raw video data can be transformed into structured, meaningful analytics for sports performance analysis.
 
 **Live demo:**  
-[https://fencing-visual-analysis.streamlit.app/](https://fencing-visual-analysis.streamlit.app/)
+[https://fencing-computer-vision-analysis.streamlit.app/](https://fencing-computer-vision-analysis.streamlit.app/)
 
 ## Project Overview
 
