@@ -55,8 +55,8 @@ The app serves as a tool for athletes and coaches to analyze fencing technique b
 Clone the repository:
 
 ```bash
-git clone https://github.com/SilverPeak2299/Fencing_lunge_analysys.git
-cd fencing-lunge-analysis
+git clone https://github.com/SilverPeak2299/Fencing_Visual_Analysis.git
+cd Fencing_Visual_Analysis
 ```
 
 Install dependencies:
