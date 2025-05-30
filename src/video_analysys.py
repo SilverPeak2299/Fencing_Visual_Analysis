@@ -6,7 +6,7 @@ class VideoAnalysys:
     model: YOLO
     
     def __init__(self) :
-        self.model = YOLO("./models/yolo11l-pose.pt")
+        self.model = YOLO("./models/yolo11s-pose.pt")
         
     def analyze_frame(self, frame):
         results = self.model(frame)
