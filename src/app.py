@@ -1,29 +1,38 @@
-import argparse
-import cv2 as cv
 import numpy as np
 
-import matplotlib.pyplot as plt
+import streamlit as st
+import tempfile
 
-from yolo_pose import process_image, load_model
+from video_analysys import VideoAnalysys
+from utilities.video_utilitiy import VideoUtility
+from utilities.plots import plot_keypoint_trajectories, plot_velocity
 
 def main():
-    file = return_file_path()
+    st.title("Fencing Lunge Analysis")
+    video_file = st.file_uploader("Upload a fencing video", type=["mp4"])
     
-    video = cv.VideoCapture(file)
+    if video_file is None:
+        st.error("Please upload a mp4 file.")
+        return
+    
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.write(video_file.read())
+    
+    video = VideoUtility(temp_file.name)
+    va = VideoAnalysys()
     
     left_hip_path = []
     right_hip_path = []
     left_shoulder_path = []
     right_wrist_path = []
     
-    while video.isOpened():
-        yolo_model = load_model()
-        ret, frame = video.read()
-        if not ret:
-            break
+    video_placeholder = st.empty()
+    
+    frame_exists, frame = video.get_frame()
+    while frame_exists:
         
-        # Inference
-        results = process_image(frame, yolo_model)
+        processed_frame = va.analyze_frame(frame)
+        results = processed_frame
         
         if len(results[0].keypoints) == 0:
             continue  # No person detected
@@ -37,58 +46,45 @@ def main():
         right_wrist_path.append(keypoints[10])     # Right wrist
         
         # Plot keypoints on frame
-        annotated_frame = results[0].plot()
+        processed_frame = results[0].plot()
         
         # Show the result
-        cv.imshow("Fencing Pose Tracking", annotated_frame)
+        video_placeholder.image(processed_frame, caption="Pose Tracking")
         
-        # Exit on ESC
-        if cv.waitKey(1) == 27:
-            break
+        frame_exists, frame = video.get_frame()
     
 
-    lh = np.array(left_hip_path)
-    rh = np.array(right_hip_path)
-    ls = np.array(left_shoulder_path)
-    re = np.array(right_wrist_path)
+    lh = va.lowpass_filter(np.array(left_hip_path))
+    rh = va.lowpass_filter(np.array(right_hip_path))
+    ls = va.lowpass_filter(np.array(left_shoulder_path))
+    re = va.lowpass_filter(np.array(right_wrist_path))
     
     # Plot
-    plot_keypoint_trajectories(
+    st.subheader("Pose Keypoint Trajectories")
+    fig = plot_keypoint_trajectories(
         ("Left Hip", lh),
         ("Right Hip", rh),
         ("Left Shoulder", ls),
         ("Right wrist", re)
     )
+    st.pyplot(fig)
+    
+    
+    st.header("Velocities")
+    wrist_velocity = va.compute_velocity(right_wrist_path, video.fps)
+    fig = plot_velocity(wrist_velocity, "Right Wrist")
+    st.pyplot(fig)
 
-def plot_keypoint_trajectories(*keypoints):
-    """
-    Plot 2D trajectories of any number of keypoints.
+    left_shoulder_velocity = va.compute_velocity(left_shoulder_path, video.fps)
+    fig = plot_velocity(left_shoulder_velocity, "Left Shoulder")
+    st.pyplot(fig)
+    
+    left_hip_velocity = va.compute_velocity(left_hip_path, video.fps)
+    fig = plot_velocity(left_hip_velocity, "Left Hip")
+    st.pyplot(fig)
+    
 
-    Parameters:
-        keypoints: Any number of tuples in the form (label: str, coords: np.ndarray)
-                   where coords is an Nx2 array of (x, y) points.
-    """
-    plt.figure(figsize=(10, 6))
 
-    for label, coords in keypoints:
-        coords = np.array(coords)
-        if coords.shape[1] != 2:
-            raise ValueError(f"{label} must be an Nx2 array of (x, y) coordinates.")
-        plt.plot(coords[:, 0], coords[:, 1], label=label)
 
-    plt.gca().invert_yaxis()  # OpenCV-style image coordinates
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    plt.title("Pose Keypoint Trajectories")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-def return_file_path():
-    parser = argparse.ArgumentParser(description='Return file path')
-    parser.add_argument('file_path', type=str, help='Path to the file')
-    args = parser.parse_args()
-    return args.file_path
- 
 if __name__ == "__main__":
     main()

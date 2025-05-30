@@ -1,4 +1,6 @@
 matplotlib
-opencv-python
+opencv-python-headless
 ultralytics
 streamlit
+scipy
+numpy
