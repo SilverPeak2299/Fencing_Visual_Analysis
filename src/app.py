@@ -191,8 +191,8 @@ def render_analysis_page():
     # Convert frames to video
     h, w, _ = frames[0].shape
     fps = video.fps
-    output_path = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False).name
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    output_path = tempfile.NamedTemporaryFile(suffix=".avi", delete=False).name
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
     writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
 
     for frame in frames:
