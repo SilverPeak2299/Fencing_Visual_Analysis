@@ -200,8 +200,7 @@ def render_analysis_page():
 
     writer.release()
 
-    with open(output_path) as f:
-        st.video(f.read())
+    st.video(output_path)
     
     
     left_hip_path = named_keypoints["left_hip"] 
