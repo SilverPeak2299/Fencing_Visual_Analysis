@@ -4,3 +4,4 @@ ultralytics
 streamlit
 scipy
 numpy
+supabase

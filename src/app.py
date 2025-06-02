@@ -1,5 +1,10 @@
 import numpy as np
 
+import os
+
+import hashlib
+import json
+
 import streamlit as st
 import tempfile
 
@@ -8,58 +13,171 @@ from utilities.video_utilitiy import VideoUtility
 from utilities.plots import plot_keypoint_trajectories, plot_velocity
 from utilities.filters import lowpass_filter
 
+import cv2
+
+from supabase import Client, create_client
+
+SUPABASE_URL = os.environ.get("FENCING_VISION_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("FENCING_VISION_SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 def main():
+    button = st.button("Log Out")
+    if button:
+        st.session_state["user"] = None
+        st.rerun()
+    
+    render_login_page()
+    
+    if st.session_state["user"] is not None:
+        render_analysis_page()
+    
+
+def render_login_page():
+    st.title("Fencing Video Analysis Login Page")
+    
+    if "user" not in st.session_state:
+        st.session_state["user"] = None
+    
+    if st.session_state["user"] is None:
+        st.write("Please log in to continue.")
+    else:
+        return
+        
+    email = st.text_input("Email: ")
+    password = st.text_input("Password: ", type="password")
+    
+    login_button = st.button("Login")
+    signup_button = st.button("Sign Up")
+    try:
+        if login_button:
+            response = supabase.auth.sign_in_with_password(
+                {
+                    "email": email,
+                    "password": password}
+                )
+                
+            if response.user is not None:
+                st.session_state["user"] = response.user
+                st.rerun()
+            else:
+                st.error("Invalid email or password.")
+        
+        if signup_button:
+            response = supabase.auth.sign_up(
+                {
+                    "email": email,
+                    "password": password
+                }
+            )
+            
+            if response.user is not None:
+                st.session_state["user"] = response.user
+                st.rerun()
+            else:
+                st.error("Invalid email or password.")
+    except Exception as e:
+        st.error(f"{e}")
+    
+def render_analysis_page():
     st.title("Fencing Lunge Analysis")
     left_handed = st.checkbox("Left Handed? ")
     video_file = st.file_uploader("Upload a fencing video", type=["mp4"])
-    
     if video_file is None:
         st.error("Please upload a mp4 file.")
         return
     
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write(video_file.read())
-    
+        
     video = VideoUtility(temp_file.name)
     va = VideoAnalysys(left_handed)
     
-    left_hip_path = []
-    right_hip_path = []
-    left_shoulder_path = []
-    wrist_path = []
-    
-    video_placeholder = st.empty()
-    
     frame_exists, frame = video.get_frame()
+    
+    frames = []
+    video_keypoints = []
+    
     while frame_exists:
         
         processed_frame = va.analyze_frame(frame)
         results = processed_frame
         
         if len(results[0].keypoints) == 0:
+            frame_exists, frame = video.get_frame()
             continue  # No person detected
         
         keypoints = results[0].keypoints.xy[0].cpu().numpy()  # First person only
-        
-        # Append coordinates (x, y)
-        left_hip_path.append(keypoints[11])       # Left hip
-        right_hip_path.append(keypoints[12])      # Right hip
-        left_shoulder_path.append(keypoints[6])   # Left shoulder
-        
-        if left_handed:
-            wrist_path.append(keypoints[9])     # Left wrist
-        else:
-            wrist_path.append(keypoints[10])     # Right wrist
+        keypoint_list = keypoints.tolist()
+        video_keypoints.append(keypoint_list)
         
         # Plot keypoints on frame
         processed_frame = results[0].plot()
-        
-        # Show the result
-        video_placeholder.image(processed_frame, caption="Pose Tracking")
+        frames.append(processed_frame)
         
         frame_exists, frame = video.get_frame()
     
+    
+    keypoint_names = [
+            "nose", "left_eye", "right_eye", "left_ear", "right_ear",
+            "left_shoulder", "right_shoulder", "left_elbow", "right_elbow",
+            "left_wrist", "right_wrist", "left_hip", "right_hip",
+            "left_knee", "right_knee", "left_ankle", "right_ankle"
+        ]
+        
+    keypoints_array = np.array(video_keypoints)
+    
+    named_keypoints = {
+        name: keypoints_array[:, idx, :].tolist()
+        for idx, name in enumerate(keypoint_names)
+    }
+    
+    video_hash = hashlib.sha256(json.dumps(named_keypoints).encode()).hexdigest()
+    
+    existing = (
+        supabase
+        .table("data_points")
+        .select("id")
+        .eq("video_hash", video_hash)
+        .eq("user_id", st.session_state["user"].id)
+        .execute()
+    )
+    
+    if existing.data == []:
+        supabase.table("data_points").insert({
+            "location_points": named_keypoints,
+            "name": video_file.name,
+            "user_id": st.session_state["user"].id,
+            "video_hash": video_hash
+        }).execute()
+    
+    
+    # Convert frames to video
+    h, w, _ = frames[0].shape
+    fps = video.fps
+    output_path = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False).name
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
 
+    for frame in frames:
+        writer.write(frame)
+
+    writer.release()
+
+    with open(output_path, "rb") as f:
+        st.video(f.read())
+    
+    
+    left_hip_path = named_keypoints["left_hip"] 
+    right_hip_path = named_keypoints["right_hip"]
+    left_shoulder_path = named_keypoints["left_shoulder"]
+    
+    if left_handed:
+        wrist_path = named_keypoints["left_wrist"] 
+    else:
+        wrist_path = named_keypoints["right_wrist"]
+
+    
     lh = lowpass_filter(np.array(left_hip_path))
     rh = lowpass_filter(np.array(right_hip_path))
     ls = lowpass_filter(np.array(left_shoulder_path))
@@ -90,6 +208,11 @@ def main():
     left_hip_velocity = va.compute_velocity(left_hip_path, video.fps)
     filtered_left_hip_velocity = lowpass_filter(left_hip_velocity)
     fig = plot_velocity(filtered_left_hip_velocity, "Left Hip", video.fps)
+    st.pyplot(fig)
+    
+    
+    wrist_hip_delta = filtered_wrist_velocity - filtered_left_hip_velocity
+    fig = plot_velocity(wrist_hip_delta, "Wrist Velocity - Hip Velocity", video.fps)
     st.pyplot(fig)
     
     # st.subheader("Accelerations")
