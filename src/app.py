@@ -200,7 +200,7 @@ def render_analysis_page():
 
     writer.release()
 
-    with open(output_path, "rb") as f:
+    with open(output_path) as f:
         st.video(f.read())
     
     
