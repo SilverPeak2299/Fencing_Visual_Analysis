@@ -1,5 +1,4 @@
 matplotlib
-opencv-python-headless
 ultralytics
 streamlit
 scipy
