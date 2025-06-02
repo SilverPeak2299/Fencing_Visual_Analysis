@@ -192,7 +192,7 @@ def render_analysis_page():
     h, w, _ = frames[0].shape
     fps = video.fps
     output_path = tempfile.NamedTemporaryFile(suffix=".avi", delete=False).name
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
     writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
 
     for frame in frames:

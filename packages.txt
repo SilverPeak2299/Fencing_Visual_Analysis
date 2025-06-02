@@ -5,3 +5,4 @@ libxext6
 libxrender-dev
 libgomp1
 libgcc-s1
+ffempeg
