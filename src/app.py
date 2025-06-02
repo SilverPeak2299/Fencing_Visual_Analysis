@@ -1,3 +1,4 @@
+from altair.vegalite.v5.api import renderers
 import numpy as np
 
 import os
@@ -21,61 +22,96 @@ SUPABASE_URL = os.environ.get("FENCING_VISION_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("FENCING_VISION_SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+
 def main():
-    button = st.button("Log Out")
-    if button:
-        st.session_state["user"] = None
+    if "page" not in st.session_state:
+        st.session_state["page"] = "analysis"
+    
+    if st.session_state.get("user") is None:
+        response = supabase.auth.sign_in_anonymously()
+        st.session_state["user"] = response.user
+        st.session_state["anon_user"] = True
+    st.sidebar.title("Fencing Video Analysys")
+    
+    if st.session_state.get("anon_user"):
+        st.sidebar.warning("You are using an anonymous account. Please sign up or log in to save your data.")
+            
+
+    if st.sidebar.button("Login"):
+        st.session_state["page"] = "login"
+        
+    if st.sidebar.button("Sign Up"):
+        st.session_state["page"] = "signup"
+        
+    if st.sidebar.button("Log Out"):
+        st.session_state.clear()
         st.rerun()
-    
-    render_login_page()
-    
-    if st.session_state["user"] is not None:
-        render_analysis_page()
+
+
+    if st.session_state["page"] == "login":
+        render_login_page()
+        st.rerun()
+        return
+    elif st.session_state["page"] == "signup":
+        render_signup_page()
+        st.rerun()
+        return    
+
+    render_analysis_page()
     
 
+
+def render_signup_page():
+    st.title("Fencing Video Analysis Sign Up Page")
+    email = st.text_input("Email: ")
+    password = st.text_input("Password: ", type="password")
+    
+    signup_button = st.button("Log In", key= "submitting_user")
+
+    try:
+        if signup_button:
+            response = supabase.auth.update_user(
+                {
+                    "email": email,
+                    "password": password
+                }
+                )
+                
+            if response.user is not None:
+                st.session_state["user"] = response.user
+                st.session_state["anon_user"] = False
+                st.session_state["page"] = "analysis"
+                st.rerun()
+            else:
+                st.error("Invalid email or password.")
+                
+    except Exception as e:
+        st.error(f"{e}")
+
 def render_login_page():
-    st.title("Fencing Video Analysis Login Page")
-    
-    if "user" not in st.session_state:
-        st.session_state["user"] = None
-    
-    if st.session_state["user"] is None:
-        st.write("Please log in to continue.")
-    else:
-        return
         
     email = st.text_input("Email: ")
     password = st.text_input("Password: ", type="password")
     
-    login_button = st.button("Login")
-    signup_button = st.button("Sign Up")
+    login_button = st.button("Log In", key= "submitting_user")
+
     try:
         if login_button:
             response = supabase.auth.sign_in_with_password(
                 {
                     "email": email,
-                    "password": password}
+                    "password": password
+                }
                 )
                 
             if response.user is not None:
                 st.session_state["user"] = response.user
+                st.session_state["anon_user"] = False
+                st.session_state["page"] = "analysis"
                 st.rerun()
             else:
                 st.error("Invalid email or password.")
         
-        if signup_button:
-            response = supabase.auth.sign_up(
-                {
-                    "email": email,
-                    "password": password
-                }
-            )
-            
-            if response.user is not None:
-                st.session_state["user"] = response.user
-                st.rerun()
-            else:
-                st.error("Invalid email or password.")
     except Exception as e:
         st.error(f"{e}")
     
