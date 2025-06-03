@@ -15,7 +15,6 @@ class VideoAnalysys:
         results = self.model(frame)
         return results
         
-    @st.cache_data(show_spinner="Processing video...", max_entries=10) 
     def analyze_video(_self, _video):
         frame_exists, frame = _video.get_frame()
         

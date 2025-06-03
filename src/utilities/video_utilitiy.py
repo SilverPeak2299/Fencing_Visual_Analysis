@@ -1,6 +1,7 @@
 import cv2 as cv
 import imageio
 import tempfile
+import os
 
 class VideoUtility:
     fps: int
@@ -39,6 +40,8 @@ class VideoUtility:
     
         with open(tmp_path, "rb") as f:
             video_bytes = f.read()
+        
+        os.remove(tmp_path)
         
         return video_bytes
     
