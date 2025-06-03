@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 import numpy as np
+import streamlit as st
 
-from utilities.filters import lowpass_filter
 
 class VideoAnalysys:
     model: YOLO
@@ -14,6 +14,35 @@ class VideoAnalysys:
     def analyze_frame(self, frame):
         results = self.model(frame)
         return results
+        
+    @st.cache_data(show_spinner="Processing video...", max_entries=10) 
+    def analyze_video(_self, _video):
+        frame_exists, frame = _video.get_frame()
+        
+        frames = []
+        video_keypoints = []
+    
+        while frame_exists:
+            
+            processed_frame = _self.analyze_frame(frame)
+            results = processed_frame
+            
+            if len(results[0].keypoints) == 0:
+                frame_exists, frame = _video.get_frame()
+                continue  # No person detected
+            
+            keypoints = results[0].keypoints.xy[0].cpu().numpy()  # First person only
+            keypoint_list = keypoints.tolist()
+            video_keypoints.append(keypoint_list)
+            
+            # Plot keypoints on frame
+            processed_frame = results[0].plot()
+            frames.append(processed_frame)
+            
+            frame_exists, frame = _video.get_frame()
+            
+        return frames, video_keypoints
+
 
     def compute_velocity(self, positions, fps=30):
         """
