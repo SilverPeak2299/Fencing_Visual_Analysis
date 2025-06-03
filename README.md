@@ -19,11 +19,12 @@ The app serves as a tool for athletes and coaches to analyze fencing technique b
 
 ## Key Features
 
-- Upload fencing footage and automatically extract joint positions
-- Visualize trajectories of shoulders, hips, wrists, and more
-- Plot movement paths, velocity changes, and side-by-side comparisons
-- Designed for repeated use in training environments and performance reviews
-- Downloadable visual outputs for offline analysis or reporting
+- **User Authentication**: Secure access through Supabase's authentication services.
+- **Video Upload and Storage**: Upload fencing footage, which is stored in Supabase storage buckets for efficient retrieval.
+- **Pose Estimation**: Automatically extract joint positions using YOLOv11 Pose.
+- **Data Persistence**: Computed location points are stored in a Supabase database, enabling persistent data tracking.
+- **Visualization Tools**: Visualize trajectories of shoulders, hips, wrists, and more; plot movement paths, velocity changes, and side-by-side comparisons.
+- **History Page**: View and manage previously uploaded videos and corresponding analyses.
 
 ## Target Skills Demonstrated
 
@@ -33,22 +34,40 @@ The app serves as a tool for athletes and coaches to analyze fencing technique b
 - Visualization with matplotlib
 - Deployment using Streamlit and version control with Git
 - Lightweight system design with scalability in mind
-
-## How It Works
-
-1. A user uploads a fencing video (MP4 format recommended)
-2. The app uses a pose estimation backend to extract joint coordinates
-3. Joint positions are tracked across frames and structured into a time series
-4. The user selects joints of interest and views trajectory plots
-5. Visualizations can be exported for further analysis
+- Integration with Supabase for authentication, database, and storage solutions
 
 ## Technology Stack
 
 - **Frontend/UI**: Streamlit  
-- **Computer Vision**: YOLO11 Pose 
-- **Data Handling**: pandas, NumPy  
+- **Computer Vision**: YOLOv11 Pose 
+- **Data Handling**: NumPy  
 - **Visualization**: matplotlib 
-- **Deployment**: Streamlit Cloud  
+- **Backend Services**: Supabase (authentication, database, storage)
+- **Deployment**: Streamlit Cloud
+
+## Next Steps
+
+Planned future development areas for the project include:
+
+- **Automated Database Maintenance**  
+  Implement scheduled background tasks to manage storage and improve efficiency, including:
+  - Removing old or inactive anonymous user accounts
+  - Deleting outdated video files from Supabase buckets to minimize storage usage
+
+- **Infrastructure Migration**  
+  Port the system to a more scalable and performant cloud provider (e.g., AWS, GCP, or Azure) to support more users, improve processing speeds, and enhance reliability.
+
+- **Frontend Overhaul with Next.js**  
+  Replace the current Streamlit-based UI with a modern, dedicated frontend using **Next.js**. This will allow for:
+  - Improved interactivity and responsiveness
+  - More control over styling and layout
+  - Separation of concerns between the frontend and backend for better scalability
+
+- **Machine Learning Integration**  
+  Use the stored joint position time-series data to train a **neural network**. Potential goals include:
+  - Classifying fencing movements or techniques
+  - Identifying anomalies or inefficiencies in form
+  - Providing real-time feedback or recommendations for athletes
 
 ## Running Locally
 
