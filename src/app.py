@@ -6,6 +6,7 @@ import os
 import hashlib
 import json
 
+from numpy.ma.core import compressed
 import streamlit as st
 import tempfile
 
@@ -45,16 +46,14 @@ def main():
         
     if st.sidebar.button("Log Out"):
         st.session_state.clear()
-        st.rerun()
 
 
     if st.session_state["page"] == "login":
         render_login_page()
-        st.rerun()
         return
+
     elif st.session_state["page"] == "signup":
         render_signup_page()
-        st.rerun()
         return    
 
     render_analysis_page()
@@ -129,30 +128,7 @@ def render_analysis_page():
     video = VideoUtility(temp_file.name)
     va = VideoAnalysys(left_handed)
     
-    frame_exists, frame = video.get_frame()
-    
-    frames = []
-    video_keypoints = []
-    
-    while frame_exists:
-        
-        processed_frame = va.analyze_frame(frame)
-        results = processed_frame
-        
-        if len(results[0].keypoints) == 0:
-            frame_exists, frame = video.get_frame()
-            continue  # No person detected
-        
-        keypoints = results[0].keypoints.xy[0].cpu().numpy()  # First person only
-        keypoint_list = keypoints.tolist()
-        video_keypoints.append(keypoint_list)
-        
-        # Plot keypoints on frame
-        processed_frame = results[0].plot()
-        frames.append(processed_frame)
-        
-        frame_exists, frame = video.get_frame()
-    
+    frames, video_keypoints = va.analyze_video(video)
     
     keypoint_names = [
             "nose", "left_eye", "right_eye", "left_ear", "right_ear",
@@ -188,20 +164,8 @@ def render_analysis_page():
         }).execute()
     
     
-    # Convert frames to video
-    h, w, _ = frames[0].shape
-    fps = video.fps
-    output_path = tempfile.NamedTemporaryFile(suffix=".avi", delete=False).name
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
-
-    for frame in frames:
-        writer.write(frame)
-
-    writer.release()
-
-    st.video(output_path)
-    
+    video_bytes = video.get_video_bytes(frames, video.fps)
+    st.video(video_bytes)
     
     left_hip_path = named_keypoints["left_hip"] 
     right_hip_path = named_keypoints["right_hip"]
