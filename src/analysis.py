@@ -51,6 +51,10 @@ def analyze_keypoints(named_keypoints, left_handed, va, fps):
     fig = plot_velocity(wrist_hip_delta, "Wrist Velocity - Hip Velocity", fps)
     st.pyplot(fig)
     
+    shoulder_hip_delta = filtered_left_shoulder_velocity - filtered_left_hip_velocity
+    fig = plot_velocity(shoulder_hip_delta, "Shoulder Velocity - Hip Velocity", fps)
+    st.pyplot(fig)
+    
     # st.subheader("Accelerations")
     # left_hip_acceleration = va.compute_acceleration(left_hip_velocity, fps)
     # filtered_left_hip_acceleration = lowpass_filter(left_hip_acceleration)

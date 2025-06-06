@@ -1,14 +1,15 @@
 from ultralytics import YOLO
 import numpy as np
-import streamlit as st
+from streamlit import cache_resource
 
 
 class VideoAnalysys:
     model: YOLO
     left_handed: bool
     
+
     def __init__(self, left_handed=False) :
-        self.model = YOLO("./models/yolo11n-pose.pt")
+        self.model = YOLO("./models/yolo11n-pose.onnx")
         self.left_handed = left_handed
         
     def analyze_frame(self, frame):

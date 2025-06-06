@@ -71,14 +71,18 @@ def main():
 
 def render_signup_page():
     st.title("Fencing Video Analysis Sign Up Page")
+    
+    if st.button("Return to analysis page"):
+        st.session_state["page"] = "analysis"
+
     email = st.text_input("Email: ")
     password = st.text_input("Password: ", type="password")
     
-    signup_button = st.button("Log In", key= "submitting_user")
+    signup_button = st.button("Log Up", key= "submitting_user")
 
     try:
         if signup_button:
-            response = supabase.auth.update_user(
+            response = supabase.auth.sign_up(
                 {
                     "email": email,
                     "password": password
@@ -89,7 +93,7 @@ def render_signup_page():
                 st.session_state["user"] = response.user
                 st.session_state["anon_user"] = False
                 st.session_state["page"] = "analysis"
-                st.rerun()
+                
             else:
                 st.error("Invalid email or password.")
                 
@@ -97,11 +101,15 @@ def render_signup_page():
         st.error(f"{e}")
 
 def render_login_page():
+    st.title("Fencing Video Analysis Login Page")
+    
+    if st.button("Return to analysis page"):
+        st.session_state["page"] = "analysis"
         
     email = st.text_input("Email: ")
     password = st.text_input("Password: ", type="password")
     
-    login_button = st.button("Log In", key= "submitting_user")
+    login_button = st.button("Sign In", key= "submitting_user")
 
     try:
         if login_button:
@@ -116,7 +124,7 @@ def render_login_page():
                 st.session_state["user"] = response.user
                 st.session_state["anon_user"] = False
                 st.session_state["page"] = "analysis"
-                st.rerun()
+                
             else:
                 st.error("Invalid email or password.")
         
@@ -184,6 +192,7 @@ def render_analysis_page():
 
 def render_history():
     st.title("History")
+    st.text("Videos older than 1 month will be deleted, the analysis will still be available.")
     
     if st.button("Return to analysis page"):
         st.session_state["page"] = "analysis"
