@@ -9,7 +9,7 @@ class VideoAnalysys:
     
 
     def __init__(self, left_handed=False) :
-        self.model = YOLO("./models/yolo11n-pose.onnx")
+        self.model = YOLO("./models/yolo11n-pose.pt")
         self.left_handed = left_handed
         
     def analyze_frame(self, frame):
