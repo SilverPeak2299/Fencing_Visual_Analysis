@@ -1,7 +1,5 @@
 from ultralytics import YOLO
 import numpy as np
-from streamlit import cache_resource
-
 
 class VideoAnalysys:
     model: YOLO

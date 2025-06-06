@@ -44,9 +44,6 @@ multidict==6.4.4
 narwhals==1.41.0
 networkx==3.5
 numpy==2.2.6
-onnx==1.17.0
-onnxruntime==1.22.0
-onnxslim==0.1.56
 opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
 packaging==24.2
